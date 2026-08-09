@@ -14,16 +14,316 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      categories: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      delivery_rules: {
+        Row: {
+          charge: number
+          created_at: string
+          from_location: string
+          id: string
+          to_location: string
+        }
+        Insert: {
+          charge?: number
+          created_at?: string
+          from_location: string
+          id?: string
+          to_location: string
+        }
+        Update: {
+          charge?: number
+          created_at?: string
+          from_location?: string
+          id?: string
+          to_location?: string
+        }
+        Relationships: []
+      }
+      materials: {
+        Row: {
+          active: boolean
+          available: boolean
+          brand: string
+          category_id: string
+          created_at: string
+          id: string
+          name: string
+          price: number
+          quality: string
+          type: string
+          unit: string
+        }
+        Insert: {
+          active?: boolean
+          available?: boolean
+          brand?: string
+          category_id: string
+          created_at?: string
+          id?: string
+          name: string
+          price?: number
+          quality?: string
+          type?: string
+          unit?: string
+        }
+        Update: {
+          active?: boolean
+          available?: boolean
+          brand?: string
+          category_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          price?: number
+          quality?: string
+          type?: string
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "materials_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string
+          created_at: string
+          for_admin: boolean
+          id: string
+          order_id: string | null
+          read: boolean
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          for_admin?: boolean
+          id?: string
+          order_id?: string | null
+          read?: boolean
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          for_admin?: boolean
+          id?: string
+          order_id?: string | null
+          read?: boolean
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_items: {
+        Row: {
+          brand: string
+          id: string
+          line_total: number
+          material_id: string | null
+          material_name: string
+          order_id: string
+          quality: string
+          quantity: number
+          unit: string
+          unit_price: number
+        }
+        Insert: {
+          brand?: string
+          id?: string
+          line_total: number
+          material_id?: string | null
+          material_name: string
+          order_id: string
+          quality?: string
+          quantity: number
+          unit?: string
+          unit_price: number
+        }
+        Update: {
+          brand?: string
+          id?: string
+          line_total?: number
+          material_id?: string | null
+          material_name?: string
+          order_id?: string
+          quality?: string
+          quantity?: number
+          unit?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          address: string
+          city: string
+          contact_email: string
+          contact_name: string
+          contact_phone: string
+          created_at: string
+          delivery_charge: number
+          district: string
+          id: string
+          location_note: string
+          order_no: string
+          pincode: string
+          site_name: string
+          status: string
+          subtotal: number
+          total: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string
+          city?: string
+          contact_email?: string
+          contact_name?: string
+          contact_phone?: string
+          created_at?: string
+          delivery_charge?: number
+          district?: string
+          id?: string
+          location_note?: string
+          order_no?: string
+          pincode?: string
+          site_name?: string
+          status?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string
+          city?: string
+          contact_email?: string
+          contact_name?: string
+          contact_phone?: string
+          created_at?: string
+          delivery_charge?: number
+          district?: string
+          id?: string
+          location_note?: string
+          order_no?: string
+          pincode?: string
+          site_name?: string
+          status?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          phone: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id: string
+          phone?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          phone?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "customer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +450,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "customer"],
+    },
   },
 } as const
