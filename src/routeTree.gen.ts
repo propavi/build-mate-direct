@@ -16,6 +16,8 @@ import { Route as AuthenticatedCartRouteImport } from './routes/_authenticated/c
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedMaterialsRouteImport } from './routes/_authenticated/materials'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedOrdersIndexRouteImport } from './routes/_authenticated/orders.index'
 import { Route as AuthenticatedOrdersOrderIdRouteImport } from './routes/_authenticated/orders.$orderId'
 
@@ -53,6 +55,17 @@ const AuthenticatedMaterialsRoute = AuthenticatedMaterialsRouteImport.update({
   path: '/materials',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedOrdersIndexRoute =
   AuthenticatedOrdersIndexRouteImport.update({
     id: '/orders/',
@@ -73,6 +86,8 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/materials': typeof AuthenticatedMaterialsRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/orders/': typeof AuthenticatedOrdersIndexRoute
 }
@@ -83,6 +98,8 @@ export interface FileRoutesByTo {
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/materials': typeof AuthenticatedMaterialsRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/orders': typeof AuthenticatedOrdersIndexRoute
 }
@@ -95,6 +112,8 @@ export interface FileRoutesById {
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/materials': typeof AuthenticatedMaterialsRoute
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/_authenticated/orders/': typeof AuthenticatedOrdersIndexRoute
 }
@@ -107,6 +126,8 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/dashboard'
     | '/materials'
+    | '/notifications'
+    | '/profile'
     | '/orders/$orderId'
     | '/orders/'
   fileRoutesByTo: FileRoutesByTo
@@ -117,6 +138,8 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/dashboard'
     | '/materials'
+    | '/notifications'
+    | '/profile'
     | '/orders/$orderId'
     | '/orders'
   id:
@@ -128,6 +151,8 @@ export interface FileRouteTypes {
     | '/_authenticated/checkout'
     | '/_authenticated/dashboard'
     | '/_authenticated/materials'
+    | '/_authenticated/notifications'
+    | '/_authenticated/profile'
     | '/_authenticated/orders/$orderId'
     | '/_authenticated/orders/'
   fileRoutesById: FileRoutesById
@@ -189,6 +214,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMaterialsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/orders/': {
       id: '/_authenticated/orders/'
       path: '/orders'
@@ -211,6 +250,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMaterialsRoute: typeof AuthenticatedMaterialsRoute
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedOrdersOrderIdRoute: typeof AuthenticatedOrdersOrderIdRoute
   AuthenticatedOrdersIndexRoute: typeof AuthenticatedOrdersIndexRoute
 }
@@ -220,6 +261,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCheckoutRoute: AuthenticatedCheckoutRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMaterialsRoute: AuthenticatedMaterialsRoute,
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedOrdersOrderIdRoute: AuthenticatedOrdersOrderIdRoute,
   AuthenticatedOrdersIndexRoute: AuthenticatedOrdersIndexRoute,
 }
