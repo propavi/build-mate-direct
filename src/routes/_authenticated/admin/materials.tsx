@@ -90,10 +90,10 @@ function AdminMaterials() {
   };
 
   const toggle = async (m: Material, field: "available" | "active") => {
-    const { error } = await supabase
-      .from("materials")
-      .update({ [field]: !m[field] })
-      .eq("id", m.id);
+    const patch =
+      field === "available" ? { available: !m.available } : { active: !m.active };
+    const { error } = await supabase.from("materials").update(patch).eq("id", m.id);
+
     if (error) toast.error(error.message);
     else refresh();
   };
