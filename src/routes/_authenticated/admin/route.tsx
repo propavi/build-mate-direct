@@ -26,11 +26,16 @@ function AdminLayout() {
         <EmptyState
           icon={<ShieldAlert className="h-8 w-8" />}
           title="Admin access required"
-          description="This area is for the supplier team. Contact the business owner if you need access."
+          description="This area is for the supplier team. If this workspace has no admin yet, you can claim owner access."
           action={
-            <Button asChild>
-              <Link to="/dashboard">Back to dashboard</Link>
-            </Button>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button asChild>
+                <Link to="/claim-admin">Claim admin access</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/dashboard">Back to dashboard</Link>
+              </Button>
+            </div>
           }
         />
       </AppShell>
