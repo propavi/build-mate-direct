@@ -53,12 +53,14 @@ function AuthPage() {
   const { mode } = Route.useSearch();
   const navigate = useNavigate();
   const { session, isAdmin, loading } = useAuth();
+  const [tab, setTab] = useState<string>(mode === "login" ? "login" : "register");
 
   useEffect(() => {
     if (!loading && session) {
       navigate({ to: isAdmin ? "/admin" : "/dashboard", replace: true });
     }
   }, [session, isAdmin, loading, navigate]);
+
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
