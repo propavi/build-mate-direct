@@ -217,7 +217,7 @@ function LoginForm({ onCreateAccount }: { onCreateAccount: () => void }) {
 }
 
 
-function RegisterForm() {
+function RegisterForm({ onSignIn }: { onSignIn: () => void }) {
   const [values, setValues] = useState({
     full_name: "",
     phone: "",
@@ -227,12 +227,15 @@ function RegisterForm() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+  const [duplicate, setDuplicate] = useState(false);
+  const [sent, setSent] = useState(false);
 
   const set = (key: keyof typeof values) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setValues((v) => ({ ...v, [key]: e.target.value }));
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setDuplicate(false);
     const parsed = registerSchema.safeParse(values);
     if (!parsed.success) {
       const next: Record<string, string> = {};
@@ -242,7 +245,7 @@ function RegisterForm() {
     }
     setErrors({});
     setBusy(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
@@ -252,11 +255,29 @@ function RegisterForm() {
     });
     setBusy(false);
     if (error) {
-      setErrors({ form: error.message });
+      const msg = error.message.toLowerCase();
+      if (msg.includes("already registered") || msg.includes("already been registered") || msg.includes("user already")) {
+        setDuplicate(true);
+        return;
+      }
+      if (msg.includes("password")) {
+        setErrors({ password: "Password must be at least 6 characters." });
+        return;
+      }
+      setErrors({ form: "We couldn't create your account right now. Please try again." });
       return;
+    }
+    // Supabase obfuscates existing accounts: identities is empty when the email is taken.
+    if (data.user && (data.user.identities?.length ?? 0) === 0) {
+      setDuplicate(true);
+      return;
+    }
+    if (!data.session) {
+      setSent(true);
     }
     toast.success("Account created");
   };
+
 
   const field = (
     key: keyof typeof values,
