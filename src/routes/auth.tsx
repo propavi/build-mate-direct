@@ -95,33 +95,39 @@ function AuthPage() {
             </span>
             <span className="text-lg font-bold">BuildSupply</span>
           </Link>
-          <Tabs defaultValue={mode === "login" ? "login" : "register"}>
+          <Tabs value={tab} onValueChange={setTab}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="register">Register</TabsTrigger>
             </TabsList>
             <TabsContent value="login">
-              <LoginForm />
+              <LoginForm onCreateAccount={() => setTab("register")} />
             </TabsContent>
             <TabsContent value="register">
-              <RegisterForm />
+              <RegisterForm onSignIn={() => setTab("login")} />
             </TabsContent>
           </Tabs>
+
         </div>
       </div>
     </div>
   );
 }
 
-function LoginForm() {
+function LoginForm({ onCreateAccount }: { onCreateAccount: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    if (!email.trim() || !password) {
+      setError("Please enter your email and password.");
+      return;
+    }
     setBusy(true);
     const { error: err } = await supabase.auth.signInWithPassword({
       email: email.trim(),
@@ -129,7 +135,14 @@ function LoginForm() {
     });
     setBusy(false);
     if (err) {
-      setError(err.message);
+      const code = err.message.toLowerCase();
+      if (code.includes("email not confirmed")) {
+        setError("Please confirm your email address first, then sign in.");
+      } else if (code.includes("too many") || code.includes("rate limit")) {
+        setError("Too many attempts. Please wait a moment and try again.");
+      } else {
+        setError("Invalid email or password. Please check your credentials and try again.");
+      }
       return;
     }
     toast.success("Welcome back");
@@ -146,7 +159,6 @@ function LoginForm() {
         <Input
           id="login-email"
           type="email"
-          required
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -155,22 +167,55 @@ function LoginForm() {
       </div>
       <div className="space-y-2">
         <Label htmlFor="login-password">Password</Label>
-        <Input
-          id="login-password"
-          type="password"
-          required
-          autoComplete="current-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        <div className="relative">
+          <Input
+            id="login-password"
+            type={show ? "text" : "password"}
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="pr-10"
+          />
+          <button
+            type="button"
+            onClick={() => setShow((s) => !s)}
+            aria-label={show ? "Hide password" : "Show password"}
+            className="absolute inset-y-0 right-0 grid w-10 place-items-center text-muted-foreground hover:text-foreground"
+          >
+            {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
+        <div className="flex justify-end">
+          <Link to="/forgot-password" className="text-sm font-medium text-primary hover:underline">
+            Forgot Password?
+          </Link>
+        </div>
       </div>
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && (
+        <p
+          role="alert"
+          className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+        >
+          {error}
+        </p>
+      )}
       <Button type="submit" className="w-full" disabled={busy}>
         {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Sign in
       </Button>
+      <p className="text-center text-sm text-muted-foreground">
+        Don't have an account?{" "}
+        <button
+          type="button"
+          onClick={onCreateAccount}
+          className="font-medium text-primary hover:underline"
+        >
+          Create Account
+        </button>
+      </p>
     </form>
   );
 }
+
 
 function RegisterForm() {
   const [values, setValues] = useState({
