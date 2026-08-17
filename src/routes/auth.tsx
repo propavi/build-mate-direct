@@ -313,10 +313,43 @@ function RegisterForm({ onSignIn }: { onSignIn: () => void }) {
       {field("email", "Email", "email", "email", "you@company.com")}
       {field("password", "Password", "password", "new-password")}
       {field("confirm", "Confirm Password", "password", "new-password")}
+      {duplicate && (
+        <div
+          role="alert"
+          className="space-y-3 rounded-md border border-destructive/30 bg-destructive/10 p-3"
+        >
+          <p className="text-sm text-destructive">
+            An account with this email already exists. Please sign in instead.
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="button" size="sm" onClick={onSignIn}>
+              Sign In
+            </Button>
+            <Link
+              to="/forgot-password"
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              Forgot Password?
+            </Link>
+          </div>
+        </div>
+      )}
+      {sent && !duplicate && (
+        <p className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+          Check your inbox to confirm your email address, then sign in.
+        </p>
+      )}
       {errors["form"] && <p className="text-sm text-destructive">{errors["form"]}</p>}
       <Button type="submit" className="w-full" disabled={busy}>
         {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Create account
       </Button>
+      <p className="text-center text-sm text-muted-foreground">
+        Already have an account?{" "}
+        <button type="button" onClick={onSignIn} className="font-medium text-primary hover:underline">
+          Sign In
+        </button>
+      </p>
+
     </form>
   );
 }
