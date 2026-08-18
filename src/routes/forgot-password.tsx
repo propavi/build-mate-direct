@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { HardHat, Loader2, MailCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,12 +28,29 @@ export const Route = createFileRoute("/forgot-password")({
 });
 
 const emailSchema = z.string().trim().email("Enter a valid email address").max(255);
+const RESEND_COOLDOWN_SECONDS = 60;
 
 function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const [resendStatus, setResendStatus] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((c) => (c <= 1 ? 0 : c - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
+
+  const sendResetLink = async (targetEmail: string) => {
+    await supabase.auth.resetPasswordForEmail(targetEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,11 +62,20 @@ function ForgotPasswordPage() {
     setError(null);
     setBusy(true);
     // Ignore provider errors on purpose: never reveal whether the email exists.
-    await supabase.auth.resetPasswordForEmail(parsed.data, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
+    await sendResetLink(parsed.data);
     setBusy(false);
     setSent(true);
+    setCooldown(RESEND_COOLDOWN_SECONDS);
+  };
+
+  const resend = async () => {
+    if (cooldown > 0 || !email) return;
+    setResendStatus(null);
+    setBusy(true);
+    await sendResetLink(email);
+    setBusy(false);
+    setResendStatus("If an account exists with this email, a new reset link has been sent.");
+    setCooldown(RESEND_COOLDOWN_SECONDS);
   };
 
   return (
@@ -67,9 +93,22 @@ function ForgotPasswordPage() {
             <MailCheck className="h-7 w-7 text-primary" />
             <h1 className="text-xl font-bold">Check your inbox</h1>
             <p className="text-sm text-muted-foreground">
-              If an account exists with this email, a password reset link has been sent. Please
-              check your inbox.
+              If an account exists with this email, a password reset link has been sent to{" "}
+              <span className="font-medium text-foreground">{email}</span>. Please check your
+              inbox.
             </p>
+            {resendStatus && <p className="text-sm text-emerald-600">{resendStatus}</p>}
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={busy || cooldown > 0}
+              onClick={resend}
+            >
+              {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Resend reset link
+              {cooldown > 0 && ` (${cooldown}s)`}
+            </Button>
             <Button asChild className="w-full">
               <Link to="/auth" search={{ mode: "login" }}>
                 Back to sign in
