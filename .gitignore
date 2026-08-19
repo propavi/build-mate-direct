@@ -32,5 +32,8 @@ dist-ssr
 *.sw?
 
 # Local environment files
+# NOTE: .env is already tracked by this project, so this rule only affects
+# new local copies. Never commit secret values.
+.env
 .env.local
 .env.*.local
