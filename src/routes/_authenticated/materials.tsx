@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { categoriesQuery, materialsQuery, type Material } from "@/lib/queries";
+import { MaterialImage } from "@/components/material-image";
+import { useMaterialImageUrls } from "@/lib/material-images";
 import { useCart } from "@/lib/cart-context";
 import { inr } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -44,6 +46,7 @@ function MaterialsPage() {
   const categories = useQuery(categoriesQuery());
   const materials = useQuery(materialsQuery());
   const [term, setTerm] = useState(q ?? "");
+  const imageUrls = useMaterialImageUrls((materials.data ?? []).map((m) => m.image_path));
 
   const list = useMemo(() => {
     const cat = (categories.data ?? []).find((c) => c.slug === category);
@@ -120,7 +123,11 @@ function MaterialsPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {list.map((m) => (
-            <MaterialCard key={m.id} material={m} />
+            <MaterialCard
+              key={m.id}
+              material={m}
+              imageUrl={m.image_path ? imageUrls.data?.[m.image_path] : undefined}
+            />
           ))}
         </div>
       )}
@@ -153,7 +160,7 @@ function FilterChip({
   );
 }
 
-function MaterialCard({ material }: { material: Material }) {
+function MaterialCard({ material, imageUrl }: { material: Material; imageUrl?: string | undefined }) {
   const cart = useCart();
   const [quantity, setQuantity] = useState("1");
 
@@ -176,7 +183,12 @@ function MaterialCard({ material }: { material: Material }) {
   };
 
   return (
-    <article className="surface-panel flex flex-col p-5">
+    <article className="surface-panel flex flex-col p-4 sm:p-5">
+      <MaterialImage
+        url={imageUrl}
+        alt={material.name}
+        className="mb-4 aspect-[4/3] w-full"
+      />
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
         <h3 className="truncate text-base font-semibold">{material.name}</h3>
         <Badge variant={material.available ? "secondary" : "outline"}>

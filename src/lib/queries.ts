@@ -12,6 +12,7 @@ export type Material = {
   quality: string;
   unit: string;
   price: number;
+  image_path: string | null;
   available: boolean;
   active: boolean;
   created_at: string;
