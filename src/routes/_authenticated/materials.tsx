@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { categoriesQuery, materialsQuery, type Material } from "@/lib/queries";
+import { MaterialImage } from "@/components/material-image";
+import { useMaterialImageUrls } from "@/lib/material-images";
 import { useCart } from "@/lib/cart-context";
 import { inr } from "@/lib/format";
 import { cn } from "@/lib/utils";
