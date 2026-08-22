@@ -153,7 +153,7 @@ function FilterChip({
   );
 }
 
-function MaterialCard({ material }: { material: Material }) {
+function MaterialCard({ material, imageUrl }: { material: Material; imageUrl?: string }) {
   const cart = useCart();
   const [quantity, setQuantity] = useState("1");
 
