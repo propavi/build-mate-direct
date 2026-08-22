@@ -46,6 +46,7 @@ function MaterialsPage() {
   const categories = useQuery(categoriesQuery());
   const materials = useQuery(materialsQuery());
   const [term, setTerm] = useState(q ?? "");
+  const imageUrls = useMaterialImageUrls((materials.data ?? []).map((m) => m.image_path));
 
   const list = useMemo(() => {
     const cat = (categories.data ?? []).find((c) => c.slug === category);
@@ -122,7 +123,11 @@ function MaterialsPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {list.map((m) => (
-            <MaterialCard key={m.id} material={m} />
+            <MaterialCard
+              key={m.id}
+              material={m}
+              imageUrl={m.image_path ? imageUrls.data?.[m.image_path] : undefined}
+            />
           ))}
         </div>
       )}
@@ -155,7 +160,7 @@ function FilterChip({
   );
 }
 
-function MaterialCard({ material, imageUrl }: { material: Material; imageUrl?: string }) {
+function MaterialCard({ material, imageUrl }: { material: Material; imageUrl?: string | undefined }) {
   const cart = useCart();
   const [quantity, setQuantity] = useState("1");
 
