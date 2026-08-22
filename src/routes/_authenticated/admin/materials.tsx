@@ -17,6 +17,13 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { categoriesQuery, materialsQuery, type Material } from "@/lib/queries";
+import { MaterialImage } from "@/components/material-image";
+import {
+  removeMaterialImage,
+  uploadMaterialImage,
+  useMaterialImageUrls,
+  validateImageFile,
+} from "@/lib/material-images";
 import { inr } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/materials")({
@@ -51,12 +58,40 @@ function AdminMaterials() {
   const [form, setForm] = useState(blank);
   const [editing, setEditing] = useState<Material | null>(null);
   const [saving, setSaving] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [removeImage, setRemoveImage] = useState(false);
+  const imageUrls = useMaterialImageUrls((materials.data ?? []).map((m) => m.image_path));
+  const editingImageUrl =
+    editing?.image_path ? imageUrls.data?.[editing.image_path] : undefined;
 
-  const refresh = () => void queryClient.invalidateQueries({ queryKey: ["materials"] });
+  const resetImageState = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setRemoveImage(false);
+  };
+
+  const pickImage = (file: File | null) => {
+    if (!file) return;
+    const problem = validateImageFile(file);
+    if (problem) {
+      toast.error(problem);
+      return;
+    }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+    setRemoveImage(false);
+  };
+
+  const refresh = () => {
+    void queryClient.invalidateQueries({ queryKey: ["materials"] });
+    void queryClient.invalidateQueries({ queryKey: ["material-image-urls"] });
+  };
   const set = (k: keyof typeof blank, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   const startEdit = (m: Material) => {
     setEditing(m);
+    resetImageState();
     setForm({
       name: m.name,
       category_id: m.category_id,
@@ -75,18 +110,49 @@ function AdminMaterials() {
     }
     setSaving(true);
     const payload = { ...form, price: Number(form.price) };
-    const { error } = editing
-      ? await supabase.from("materials").update(payload).eq("id", editing.id)
-      : await supabase.from("materials").insert(payload);
-    setSaving(false);
-    if (error) {
-      toast.error(error.message);
-      return;
+    try {
+      let materialId = editing?.id ?? "";
+      if (editing) {
+        const { error } = await supabase.from("materials").update(payload).eq("id", editing.id);
+        if (error) throw new Error(error.message);
+      } else {
+        const { data, error } = await supabase
+          .from("materials")
+          .insert(payload)
+          .select("id")
+          .single();
+        if (error) throw new Error(error.message);
+        materialId = data.id;
+      }
+
+      const oldPath = editing?.image_path ?? null;
+      if (imageFile) {
+        const path = await uploadMaterialImage(imageFile, materialId);
+        const { error } = await supabase
+          .from("materials")
+          .update({ image_path: path })
+          .eq("id", materialId);
+        if (error) throw new Error(error.message);
+        if (oldPath) await removeMaterialImage(oldPath);
+      } else if (removeImage && oldPath) {
+        const { error } = await supabase
+          .from("materials")
+          .update({ image_path: null })
+          .eq("id", materialId);
+        if (error) throw new Error(error.message);
+        await removeMaterialImage(oldPath);
+      }
+
+      toast.success(editing ? "Material updated" : "Material added");
+      setEditing(null);
+      setForm(blank);
+      resetImageState();
+      refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setSaving(false);
     }
-    toast.success(editing ? "Material updated" : "Material added");
-    setEditing(null);
-    setForm(blank);
-    refresh();
   };
 
   const toggle = async (m: Material, field: "available" | "active") => {
@@ -145,6 +211,49 @@ function AdminMaterials() {
                 onChange={(e) => set("price", e.target.value)}
               />
             </Field>
+            <div className="space-y-2">
+              <Label>Material image</Label>
+              <MaterialImage
+                url={imagePreview ?? (removeImage ? null : editingImageUrl)}
+                alt={editing ? editing.name : "Material image preview"}
+                className="aspect-[4/3] w-full"
+              />
+              <div className="flex flex-wrap gap-2">
+                <Button asChild size="sm" variant="outline">
+                  <label className="cursor-pointer">
+                    {imagePreview || (editing?.image_path && !removeImage)
+                      ? "Replace image"
+                      : "Upload image"}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(e) => {
+                        pickImage(e.target.files?.[0] ?? null);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                </Button>
+                {(imagePreview || (editing?.image_path && !removeImage)) && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setImageFile(null);
+                      setImagePreview(null);
+                      if (editing?.image_path) setRemoveImage(true);
+                    }}
+                  >
+                    Delete image
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                JPG, PNG or WebP · max 5 MB. Changes apply when you save.
+              </p>
+            </div>
+
             <div className="flex gap-2 pt-1">
               <Button onClick={submit} disabled={saving} className="flex-1">
                 {saving ? (
@@ -160,6 +269,7 @@ function AdminMaterials() {
                   onClick={() => {
                     setEditing(null);
                     setForm(blank);
+                    resetImageState();
                   }}
                 >
                   Cancel
@@ -178,7 +288,13 @@ function AdminMaterials() {
             <ul className="divide-y divide-border">
               {(materials.data ?? []).map((m) => (
                 <li key={m.id} className="grid gap-3 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_auto]">
-                  <div className="min-w-0">
+                  <div className="flex min-w-0 gap-3">
+                    <MaterialImage
+                      url={m.image_path ? imageUrls.data?.[m.image_path] : null}
+                      alt={m.name}
+                      className="h-16 w-20 shrink-0"
+                    />
+                    <div className="min-w-0">
                     <p className="truncate font-semibold">{m.name}</p>
                     <p className="truncate text-xs text-muted-foreground">
                       {[m.brand, m.type, m.quality].filter(Boolean).join(" · ")} —{" "}
@@ -188,6 +304,7 @@ function AdminMaterials() {
                       {m.available ? "In stock" : "Out of stock"} ·{" "}
                       {m.active ? "Listed" : "Hidden"}
                     </p>
+                    </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Button size="sm" variant="outline" onClick={() => startEdit(m)}>
