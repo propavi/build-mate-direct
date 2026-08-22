@@ -67,6 +67,7 @@ export type Database = {
           category_id: string
           created_at: string
           id: string
+          image_path: string | null
           name: string
           price: number
           quality: string
@@ -80,6 +81,7 @@ export type Database = {
           category_id: string
           created_at?: string
           id?: string
+          image_path?: string | null
           name: string
           price?: number
           quality?: string
@@ -93,6 +95,7 @@ export type Database = {
           category_id?: string
           created_at?: string
           id?: string
+          image_path?: string | null
           name?: string
           price?: number
           quality?: string
