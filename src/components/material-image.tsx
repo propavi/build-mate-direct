@@ -7,10 +7,10 @@ export function MaterialImage({
   className,
   imgClassName,
 }: {
-  url?: string | null;
+  url?: string | null | undefined;
   alt: string;
-  className?: string;
-  imgClassName?: string;
+  className?: string | undefined;
+  imgClassName?: string | undefined;
 }) {
   return (
     <div className={cn("overflow-hidden rounded-lg border border-border bg-muted", className)}>
