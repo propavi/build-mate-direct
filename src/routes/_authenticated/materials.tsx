@@ -176,7 +176,12 @@ function MaterialCard({ material, imageUrl }: { material: Material; imageUrl?: s
   };
 
   return (
-    <article className="surface-panel flex flex-col p-5">
+    <article className="surface-panel flex flex-col p-4 sm:p-5">
+      <MaterialImage
+        url={imageUrl}
+        alt={material.name}
+        className="mb-4 aspect-[4/3] w-full"
+      />
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
         <h3 className="truncate text-base font-semibold">{material.name}</h3>
         <Badge variant={material.available ? "secondary" : "outline"}>
